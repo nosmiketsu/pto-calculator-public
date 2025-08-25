@@ -463,6 +463,14 @@
             const daysThisYear = Math.floor((today - startOfYear) / (1000 * 60 * 60 * 24));
             const ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
 
+            // Adjust PTO earned if less than 91 days of employment
+            let ptoEarnedThisYear;
+            if (daysSinceStart < 91) {
+                ptoEarnedThisYear = 0; // No PTO earned in the first 90 days
+            } else {
+                ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
+            }
+
             // Total earned PTO (this year + carried over)
             const totalEarnedPTO = ptoEarnedThisYear + ptoCarriedOver;
             const availablePTO = totalEarnedPTO - ptoUsed;
