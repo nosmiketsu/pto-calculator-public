@@ -271,6 +271,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="startDate">Specific Date:</label>
+                        <input type="date" id="endDate" required>
+                        <div class="error" id="endDateError">Please select a valid end date</div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="ptoPolicy">PTO Accrual Policy:</label>
                         <select id="ptoPolicy">
                             <option value="standard">Standard (10 days/year)</option>
@@ -362,7 +368,7 @@
         </div>
     </div>
 
-    <script>
+  <script>
         // Show/hide custom PTO input based on selection
         document.getElementById('ptoPolicy').addEventListener('change', function() {
             const customContainer = document.getElementById('customPtoContainer');
@@ -377,6 +383,8 @@
             
             // Validate start date
             const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            const endDateError = document.getElementById('endDateError');
             const startDateError = document.getElementById('startDateError');
             if (!startDate.value) {
                 startDateError.style.display = 'block';
@@ -425,73 +433,87 @@
         }
 
         function performCalculation() {
-            // Get input values
-            const startDate = new Date(document.getElementById('startDate').value);
-            const ptoPolicy = document.getElementById('ptoPolicy').value;
-            const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
-            const ptoUsed = parseFloat(document.getElementById('ptoUsed').value) || 0;
-            const ptoCarriedOver = parseFloat(document.getElementById('ptoCarriedOver').value) || 0;
+    // Get input values
+    const startDate = new Date(document.getElementById('startDate').value);
+    const ptoPolicy = document.getElementById('ptoPolicy').value;
+    const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
+    const ptoUsed = parseFloat(document.getElementById('ptoUsed').value) || 0;
+    const ptoCarriedOver = parseFloat(document.getElementById('ptoCarriedOver').value) || 0;
 
-            // Calculate years of service
-            const today = new Date();
-            const yearsOfService = (today - startDate) / (1000 * 60 * 60 * 24 * 365.25);
-            const roundedYears = Math.floor(yearsOfService * 100) / 100;
+    // PTO eligibility begins 91st day (startDate + 90 days)
+    const validPtoDate = new Date(startDate);
+    validPtoDate.setDate(validPtoDate.getDate() + 90);
 
-            // Calculate annual PTO based on policy
-            let annualPtoDays;
-            switch(ptoPolicy) {
-                case 'standard':
-                    annualPtoDays = 10;
-                    break;
-                case 'generous':
-                    annualPtoDays = 15;
-                    break;
-                case 'progressive':
-                    // Progressive policy: 10 days for first year, +1 day per year up to 20
-                    annualPtoDays = Math.min(10 + Math.floor(yearsOfService), 20);
-                    break;
-                case 'custom':
-                    annualPtoDays = parseFloat(document.getElementById('customPtoDays').value);
-                    break;
-                default:
-                    annualPtoDays = 10;
-            }
+    const today = new Date();
 
-            // Calculate PTO earned this year (prorated based on current date)
-            const startOfYear = new Date(today.getFullYear(), 0, 1);
-            const daysInYear = ((today.getFullYear() % 4 === 0 && today.getFullYear() % 100 !== 0) || today.getFullYear() % 400 === 0) ? 366 : 365;
-            const daysThisYear = Math.floor((today - startOfYear) / (1000 * 60 * 60 * 24));
-            const ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
+    // If today is before eligibility date, no PTO accrues
+    if (today < validPtoDate) {
+        document.getElementById('totalEarned').textContent = "0";
+        document.getElementById('availablePTO').textContent = "0";
+        document.getElementById('daysAvailable').textContent = "0";
+        document.getElementById('earnedThisYear').textContent = "0 hours";
+        document.getElementById('carriedOver').textContent = ptoCarriedOver.toFixed(1) + " hours";
+        document.getElementById('usedThisYear').textContent = ptoUsed.toFixed(1) + " hours";
+        document.getElementById('yearsOfService').textContent = "0.0";
 
-            // Adjust PTO earned if less than 91 days of employment
-            let ptoEarnedThisYear;
-            if (daysSinceStart < 91) {
-                ptoEarnedThisYear = 0; // No PTO earned in the first 90 days
-            } else {
-                ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
-            }
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
 
-            // Total earned PTO (this year + carried over)
-            const totalEarnedPTO = ptoEarnedThisYear + ptoCarriedOver;
-            const availablePTO = totalEarnedPTO - ptoUsed;
-            const daysAvailable = availablePTO / hoursPerDay;
+    // Calculate years of service from valid PTO date, not start date
+    const yearsOfService = (today - validPtoDate) / (1000 * 60 * 60 * 24 * 365.25);
+    const roundedYears = Math.floor(yearsOfService * 100) / 100;
 
-            // Update results
-            document.getElementById('totalEarned').textContent = totalEarnedPTO.toFixed(1);
-            document.getElementById('availablePTO').textContent = availablePTO.toFixed(1);
-            document.getElementById('daysAvailable').textContent = daysAvailable.toFixed(1);
-            document.getElementById('earnedThisYear').textContent = ptoEarnedThisYear.toFixed(1) + ' hours';
-            document.getElementById('carriedOver').textContent = ptoCarriedOver.toFixed(1) + ' hours';
-            document.getElementById('usedThisYear').textContent = ptoUsed.toFixed(1) + ' hours';
-            document.getElementById('yearsOfService').textContent = roundedYears.toFixed(1);
+    // PTO policy logic
+    let annualPtoDays;
+    switch(ptoPolicy) {
+        case 'standard':
+            annualPtoDays = 10;
+            break;
+        case 'generous':
+            annualPtoDays = 15;
+            break;
+        case 'progressive':
+            annualPtoDays = Math.min(10 + Math.floor(yearsOfService), 20);
+            break;
+        case 'custom':
+            annualPtoDays = parseFloat(document.getElementById('customPtoDays').value);
+            break;
+        default:
+            annualPtoDays = 10;
+    }
 
-            // Hide loading and show results
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('results').style.display = 'block';
+    // Pro-rated PTO this year (from eligibility date, not Jan 1)
+    const startOfAccrual = (validPtoDate > new Date(today.getFullYear(), 0, 1)) 
+        ? validPtoDate 
+        : new Date(today.getFullYear(), 0, 1);
 
-            // Smooth scroll to results
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-        }
+    const daysInYear = ((today.getFullYear() % 4 === 0 && today.getFullYear() % 100 !== 0) || today.getFullYear() % 400 === 0) ? 366 : 365;
+    const daysThisYear = Math.floor((today - startOfAccrual) / (1000 * 60 * 60 * 24));
+    const ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
+
+    // Totals
+    const totalEarnedPTO = ptoEarnedThisYear + ptoCarriedOver;
+    const availablePTO = totalEarnedPTO - ptoUsed;
+    const daysAvailable = availablePTO / hoursPerDay;
+
+    // Update results
+    document.getElementById('totalEarned').textContent = totalEarnedPTO.toFixed(1);
+    document.getElementById('availablePTO').textContent = availablePTO.toFixed(1);
+    document.getElementById('daysAvailable').textContent = daysAvailable.toFixed(1);
+    document.getElementById('earnedThisYear').textContent = ptoEarnedThisYear.toFixed(1) + ' hours';
+    document.getElementById('carriedOver').textContent = ptoCarriedOver.toFixed(1) + ' hours';
+    document.getElementById('usedThisYear').textContent = ptoUsed.toFixed(1) + ' hours';
+    document.getElementById('yearsOfService').textContent = roundedYears.toFixed(1);
+
+    // Hide loading and show results
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
 
         function resetForm() {
             document.getElementById('startDate').value = '';
