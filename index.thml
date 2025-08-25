@@ -1,1 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTO Calculator - Track Your Paid Time Off</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .calculator {
+            background: var(--card-background);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calculate-btn {
+            background: var(--primary-color);
+            color: white;
+            flex: 2;
+        }
+
+        .calculate-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .reset-btn {
+            background: #6b7280;
+            color: white;
+            flex: 1;
+        }
+
+        .reset-btn:hover {
+            background: #4b5563;
+        }
+
+        .results-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .breakdown {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .breakdown h3 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-label {
+            flex: 2;
+            font-weight: 500;
+        }
+
+        .breakdown-value {
+            flex: 1;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 PTO Calculator</h1>
+            <p>Calculate your earned paid time off based on your employment details</p>
+        </div>
+
+        <div class="calculator">
+            <div class="input-section">
+                <div>
+                    <div class="form-group">
+                        <label for="startDate">Employment Start Date:</label>
+                        <input type="date" id="startDate" required>
+                        <div class="error" id="startDateError">Please select a valid start date</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ptoPolicy">PTO Accrual Policy:</label>
+                        <select id="ptoPolicy">
+                            <option value="standard">Standard (10 days/year)</option>
+                            <option value="generous">Generous (15 days/year)</option>
+                            <option value="progressive">Progressive (increasing with tenure)</option>
+                            <option value="custom">Custom (specify days)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="customPtoContainer" style="display: none;">
+                        <label for="customPtoDays">Custom Annual PTO Days:</label>
+                        <input type="number" id="customPtoDays" min="1" max="365" placeholder="Enter days per year">
+                        <div class="error" id="customPtoError">Please enter a valid number of days</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label for="hoursPerDay">Working Hours Per Day:</label>
+                        <input type="number" id="hoursPerDay" value="8" min="1" max="24" step="0.5">
+                        <div class="error" id="hoursError">Please enter valid working hours</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ptoUsed">PTO Already Used (hours):</label>
+                        <input type="number" id="ptoUsed" value="0" min="0" step="0.5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ptoCarriedOver">PTO Carried Over (hours):</label>
+                        <input type="number" id="ptoCarriedOver" value="0" min="0" step="0.5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="calculate-btn" onclick="calculatePTO()">Calculate PTO</button>
+                <button class="reset-btn" onclick="resetForm()">Reset</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Calculating your PTO...</p>
+            </div>
+
+            <div class="results-section" id="results" style="display: none;">
+                <h2 style="text-align: center; margin-bottom: 25px; color: var(--primary-color);">PTO Calculation Results</h2>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Total Earned PTO</div>
+                        <div class="result-value" id="totalEarned">0</div>
+                        <div class="result-label">hours</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Available PTO</div>
+                        <div class="result-value" id="availablePTO">0</div>
+                        <div class="result-label">hours</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Days Available</div>
+                        <div class="result-value" id="daysAvailable">0</div>
+                        <div class="result-label">days</div>
+                    </div>
+                </div>
+
+                <div class="breakdown">
+                    <h3>Breakdown</h3>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">PTO Earned This Year:</span>
+                        <span class="breakdown-value" id="earnedThisYear">0 hours</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">PTO Carried Over:</span>
+                        <span class="breakdown-value" id="carriedOver">0 hours</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">PTO Used This Year:</span>
+                        <span class="breakdown-value" id="usedThisYear">0 hours</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Years of Service:</span>
+                        <span class="breakdown-value" id="yearsOfService">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide custom PTO input based on selection
+        document.getElementById('ptoPolicy').addEventListener('change', function() {
+            const customContainer = document.getElementById('customPtoContainer');
+            customContainer.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+
+        // Set today's date as max for start date
+        document.getElementById('startDate').max = new Date().toISOString().split('T')[0];
+
+        function validateForm() {
+            let isValid = true;
+            
+            // Validate start date
+            const startDate = document.getElementById('startDate');
+            const startDateError = document.getElementById('startDateError');
+            if (!startDate.value) {
+                startDateError.style.display = 'block';
+                isValid = false;
+            } else {
+                startDateError.style.display = 'none';
+            }
+
+            // Validate custom PTO days if custom policy is selected
+            const ptoPolicy = document.getElementById('ptoPolicy').value;
+            if (ptoPolicy === 'custom') {
+                const customPtoDays = document.getElementById('customPtoDays');
+                const customPtoError = document.getElementById('customPtoError');
+                if (!customPtoDays.value || customPtoDays.value <= 0) {
+                    customPtoError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    customPtoError.style.display = 'none';
+                }
+            }
+
+            // Validate working hours
+            const hoursPerDay = document.getElementById('hoursPerDay');
+            const hoursError = document.getElementById('hoursError');
+            if (!hoursPerDay.value || hoursPerDay.value <= 0 || hoursPerDay.value > 24) {
+                hoursError.style.display = 'block';
+                isValid = false;
+            } else {
+                hoursError.style.display = 'none';
+            }
+
+            return isValid;
+        }
+
+        function calculatePTO() {
+            if (!validateForm()) {
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            // Simulate calculation delay for better UX
+            setTimeout(performCalculation, 1000);
+        }
+
+        function performCalculation() {
+            // Get input values
+            const startDate = new Date(document.getElementById('startDate').value);
+            const ptoPolicy = document.getElementById('ptoPolicy').value;
+            const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
+            const ptoUsed = parseFloat(document.getElementById('ptoUsed').value) || 0;
+            const ptoCarriedOver = parseFloat(document.getElementById('ptoCarriedOver').value) || 0;
+
+            // Calculate years of service
+            const today = new Date();
+            const yearsOfService = (today - startDate) / (1000 * 60 * 60 * 24 * 365.25);
+            const roundedYears = Math.floor(yearsOfService * 100) / 100;
+
+            // Calculate annual PTO based on policy
+            let annualPtoDays;
+            switch(ptoPolicy) {
+                case 'standard':
+                    annualPtoDays = 10;
+                    break;
+                case 'generous':
+                    annualPtoDays = 15;
+                    break;
+                case 'progressive':
+                    // Progressive policy: 10 days for first year, +1 day per year up to 20
+                    annualPtoDays = Math.min(10 + Math.floor(yearsOfService), 20);
+                    break;
+                case 'custom':
+                    annualPtoDays = parseFloat(document.getElementById('customPtoDays').value);
+                    break;
+                default:
+                    annualPtoDays = 10;
+            }
+
+            // Calculate PTO earned this year (prorated based on current date)
+            const startOfYear = new Date(today.getFullYear(), 0, 1);
+            const daysInYear = ((today.getFullYear() % 4 === 0 && today.getFullYear() % 100 !== 0) || today.getFullYear() % 400 === 0) ? 366 : 365;
+            const daysThisYear = Math.floor((today - startOfYear) / (1000 * 60 * 60 * 24));
+            const ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
+
+            // Total earned PTO (this year + carried over)
+            const totalEarnedPTO = ptoEarnedThisYear + ptoCarriedOver;
+            const availablePTO = totalEarnedPTO - ptoUsed;
+            const daysAvailable = availablePTO / hoursPerDay;
+
+            // Update results
+            document.getElementById('totalEarned').textContent = totalEarnedPTO.toFixed(1);
+            document.getElementById('availablePTO').textContent = availablePTO.toFixed(1);
+            document.getElementById('daysAvailable').textContent = daysAvailable.toFixed(1);
+            document.getElementById('earnedThisYear').textContent = ptoEarnedThisYear.toFixed(1) + ' hours';
+            document.getElementById('carriedOver').textContent = ptoCarriedOver.toFixed(1) + ' hours';
+            document.getElementById('usedThisYear').textContent = ptoUsed.toFixed(1) + ' hours';
+            document.getElementById('yearsOfService').textContent = roundedYears.toFixed(1);
+
+            // Hide loading and show results
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+
+            // Smooth scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('ptoPolicy').value = 'standard';
+            document.getElementById('customPtoDays').value = '';
+            document.getElementById('hoursPerDay').value = '8';
+            document.getElementById('ptoUsed').value = '0';
+            document.getElementById('ptoCarriedOver').value = '0';
+            document.getElementById('customPtoContainer').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            
+            // Hide error messages
+            document.querySelectorAll('.error').forEach(error => {
+                error.style.display = 'none';
+            });
+        }
+
+        // Initialize with current date as placeholder
+        window.addEventListener('load', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').placeholder = today;
+        });
+    </script>
+</body>
+</html>
 
