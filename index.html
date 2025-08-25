@@ -285,6 +285,15 @@
                             <option value="custom">Custom (specify days)</option>
                         </select>
                     </div>
+                    
+                    <div class="form-group" id="ptoEligibility">
+                        <label for="customPtoDays">PTO Start:</label>
+                        <select id="ptoStart">
+                       		<option value="" disabled selected>Select PTO start (60 or 90)</option>
+                        	<option value="60"> 60 Days </option>
+                            <option value="90"> 90 Days </option>
+                         </select>
+                    </div>
 
                     <div class="form-group" id="customPtoContainer" style="display: none;">
                         <label for="customPtoDays">Custom Annual PTO Days:</label>
@@ -368,7 +377,7 @@
         </div>
     </div>
 
-  <script>
+    <script>
         // Show/hide custom PTO input based on selection
         document.getElementById('ptoPolicy').addEventListener('change', function() {
             const customContainer = document.getElementById('customPtoContainer');
@@ -442,7 +451,8 @@
 
     // PTO eligibility begins 91st day (startDate + 90 days)
     const validPtoDate = new Date(startDate);
-    validPtoDate.setDate(validPtoDate.getDate() + 90);
+    const ptoStart = parseInt(document.getElementById("ptoStart").value, 10);
+    validPtoDate.setDate(validPtoDate.getDate() + ptoStart);
 
     const today = new Date();
 
