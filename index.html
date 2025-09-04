@@ -444,6 +444,8 @@
         function performCalculation() {
     // Get input values
     const startDate = new Date(document.getElementById('startDate').value);
+    const endDateInput = document.getElementById('endDate').value;
+    const endDate = endDateInput ? new Date(endDateInput) : new Date(); // ✅ use endDate if provided
     const ptoPolicy = document.getElementById('ptoPolicy').value;
     const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value);
     const ptoUsed = parseFloat(document.getElementById('ptoUsed').value) || 0;
