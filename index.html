@@ -456,10 +456,10 @@
     const ptoStart = parseInt(document.getElementById("ptoStart").value, 10);
     validPtoDate.setDate(validPtoDate.getDate() + ptoStart);
 
-    const today = new Date();
+    // const today = new Date(); incase I need to put it back. If put this back remove the endDate field and change all endDate in calculation into today
 
     // If today is before eligibility date, no PTO accrues
-    if (today < validPtoDate) {
+    if (endDate < validPtoDate) {
         document.getElementById('totalEarned').textContent = "0";
         document.getElementById('availablePTO').textContent = "0";
         document.getElementById('daysAvailable').textContent = "0";
@@ -475,7 +475,7 @@
     }
 
     // Calculate years of service from valid PTO date, not start date
-    const yearsOfService = (today - validPtoDate) / (1000 * 60 * 60 * 24 * 365.25);
+    const yearsOfService = (endDate - validPtoDate) / (1000 * 60 * 60 * 24 * 365.25);
     const roundedYears = Math.floor(yearsOfService * 100) / 100;
 
     // PTO policy logic
@@ -498,12 +498,12 @@
     }
 
     // Pro-rated PTO this year (from eligibility date, not Jan 1)
-    const startOfAccrual = (validPtoDate > new Date(today.getFullYear(), 0, 1)) 
+    const startOfAccrual = (validPtoDate > new Date(endDate.getFullYear(), 0, 1)) 
         ? validPtoDate 
-        : new Date(today.getFullYear(), 0, 1);
+        : new Date(endDate.getFullYear(), 0, 1);
 
-    const daysInYear = ((today.getFullYear() % 4 === 0 && today.getFullYear() % 100 !== 0) || today.getFullYear() % 400 === 0) ? 366 : 365;
-    const daysThisYear = Math.floor((today - startOfAccrual) / (1000 * 60 * 60 * 24));
+    const daysInYear = ((endDate.getFullYear() % 4 === 0 && endDate.getFullYear() % 100 !== 0) || endDate.getFullYear() % 400 === 0) ? 366 : 365;
+    const daysThisYear = Math.floor((endDate - startOfAccrual) / (1000 * 60 * 60 * 24));
     const ptoEarnedThisYear = (annualPtoDays * hoursPerDay * daysThisYear) / daysInYear;
 
     // Totals
