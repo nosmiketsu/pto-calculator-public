@@ -256,10 +256,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>
-                <span id="calendarIcon" 
-          style="display:inline-block; width:40px; height:40px; background:#f43f5e; color:#fff; font-weight:bold; border-radius:8px; text-align:center; line-height:40px; margin-right:8px;">
-    </span> PTO Calculator</h1>
+            <h1>📅 PTO Calculator</h1>
             <p>Calculate your earned paid time off based on your employment details</p>
             <p>Love you! Work Work Work lang po!</p>
         </div>
@@ -381,12 +378,6 @@
     </div>
 
     <script>
-        // Show today's date inside the calendar icon
-          window.addEventListener("load", function() {
-            const today = new Date();
-            const day = today.getDate();
-            document.getElementById('calendarIcon').textContent = day;
-          });
         
         // Show/hide custom PTO input based on selection
         document.getElementById('ptoPolicy').addEventListener('change', function() {
