@@ -22,7 +22,7 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 950px;
     margin: auto;
 }
 
@@ -36,7 +36,6 @@ body {
 
 h1 {
     text-align: center;
-    margin-bottom: 10px;
 }
 
 .subtitle {
@@ -76,6 +75,17 @@ button:hover {
     background: var(--danger);
 }
 
+.calc-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.calc-row input {
+    width: 150px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -96,7 +106,6 @@ th, td {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
-    margin-top: 15px;
 }
 
 .result-box {
@@ -141,8 +150,9 @@ th, td {
             <input type="date" id="endDate">
             <input type="number" id="hoursWorked" placeholder="Total Hours Worked" step="0.1">
             <input type="number" id="ptoUsed" placeholder="PTO Used (optional)" step="0.1">
-            <button onclick="addEntry()">➕ Add Entry</button>
         </div>
+
+        <button style="margin-top:10px;" onclick="addEntry()">➕ Add Entry</button>
 
         <!-- TABLE -->
         <table>
@@ -161,7 +171,13 @@ th, td {
 
     <!-- RESULT -->
     <div class="card">
-        <button onclick="calculatePTO()">📊 Calculate PTO</button>
+
+        <div class="calc-row">
+            <button onclick="calculatePTO()">📊 Calculate PTO</button>
+
+            <!-- ✅ NEW FIELD -->
+            <input type="number" id="startingPTO" value="14" step="0.1" placeholder="Starting PTO">
+        </div>
 
         <div class="result">
             <div class="result-box">
@@ -254,8 +270,11 @@ function calculatePTO() {
         totalUsed += e.ptoUsed || 0;
     });
 
+    const startingPTO = parseFloat(document.getElementById("startingPTO").value) || 0;
+
     const earnedPTO = totalHours * accrualRate;
-    const remainingPTO = earnedPTO - totalUsed;
+
+    const remainingPTO = startingPTO + earnedPTO - totalUsed;
     const ptoDays = remainingPTO / 6;
 
     document.getElementById("totalHours").textContent = totalHours.toFixed(1);
