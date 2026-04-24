@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PTO Tracker</title>
+
+<style>
+:root {
+    --primary: #4f46e5;
+    --danger: #ef4444;
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #1f2937;
+    --border: #e5e7eb;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.btn-danger {
+    background: var(--danger);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th {
+    background: #f3f4f6;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+.result {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.result-box {
+    background: #eef2ff;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.result-box h3 {
+    margin: 0;
+}
+
+.result-box p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+@media(max-width: 768px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+    .result {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📅 PTO Tracker</h1>
+    <p class="subtitle">Track work hours, PTO usage, and remaining balance</p>
+
+    <!-- INPUT -->
+    <div class="card">
+        <div class="input-grid">
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <input type="number" id="hoursWorked" placeholder="Total Hours Worked" step="0.1">
+            <input type="number" id="ptoUsed" placeholder="PTO Used (optional)" step="0.1">
+            <button onclick="addEntry()">➕ Add Entry</button>
+        </div>
+
+        <!-- TABLE -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Hours</th>
+                    <th>PTO Used</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- RESULT -->
+    <div class="card">
+        <button onclick="calculatePTO()">📊 Calculate PTO</button>
+
+        <div class="result">
+            <div class="result-box">
+                <h3 id="totalHours">0</h3>
+                <p>Total Hours</p>
+            </div>
+
+            <div class="result-box">
+                <h3 id="earnedPTO">0</h3>
+                <p>PTO Earned</p>
+            </div>
+
+            <div class="result-box">
+                <h3 id="ptoUsedTotal">0</h3>
+                <p>PTO Used</p>
+            </div>
+
+            <div class="result-box">
+                <h3 id="remainingPTO">0</h3>
+                <p>Remaining PTO</p>
+            </div>
+
+            <div class="result-box">
+                <h3 id="ptoDays">0</h3>
+                <p>PTO Days (6h)</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let entries = [];
+
+// ADD ENTRY
+function addEntry() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    const hours = parseFloat(document.getElementById('hoursWorked').value);
+    const ptoUsed = parseFloat(document.getElementById('ptoUsed').value) || 0;
+
+    if (!start || !end || !hours) {
+        alert("Please complete required fields");
+        return;
+    }
+
+    entries.push({ start, end, hours, ptoUsed });
+    renderTable();
+
+    document.getElementById('hoursWorked').value = '';
+    document.getElementById('ptoUsed').value = '';
+}
+
+// RENDER TABLE
+function renderTable() {
+    const table = document.getElementById("tableBody");
+    table.innerHTML = "";
+
+    entries.forEach((entry, index) => {
+        table.innerHTML += `
+            <tr>
+                <td>${entry.start}</td>
+                <td>${entry.end}</td>
+                <td>${entry.hours}</td>
+                <td>${entry.ptoUsed}</td>
+                <td><button class="btn-danger" onclick="removeEntry(${index})">✖</button></td>
+            </tr>
+        `;
+    });
+}
+
+// REMOVE ENTRY
+function removeEntry(index) {
+    entries.splice(index, 1);
+    renderTable();
+}
+
+// CALCULATE PTO
+function calculatePTO() {
+    const PTO_PER_YEAR = 80;
+    const WORK_HOURS_PER_YEAR = 1716;
+
+    const accrualRate = PTO_PER_YEAR / WORK_HOURS_PER_YEAR;
+
+    let totalHours = 0;
+    let totalUsed = 0;
+
+    entries.forEach(e => {
+        totalHours += e.hours;
+        totalUsed += e.ptoUsed || 0;
+    });
+
+    const earnedPTO = totalHours * accrualRate;
+    const remainingPTO = earnedPTO - totalUsed;
+    const ptoDays = remainingPTO / 6;
+
+    document.getElementById("totalHours").textContent = totalHours.toFixed(1);
+    document.getElementById("earnedPTO").textContent = earnedPTO.toFixed(2);
+    document.getElementById("ptoUsedTotal").textContent = totalUsed.toFixed(2);
+    document.getElementById("remainingPTO").textContent = remainingPTO.toFixed(2);
+    document.getElementById("ptoDays").textContent = ptoDays.toFixed(2);
+}
+</script>
+
+</body>
+</html>
