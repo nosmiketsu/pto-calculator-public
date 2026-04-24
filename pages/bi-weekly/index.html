@@ -266,8 +266,8 @@ function calculatePTO() {
     let totalUsed = 0;
 
     entries.forEach(e => {
-        totalHours += e.hours;
-        totalUsed += e.ptoUsed || 0;
+        totalHours += parseFloat(e.hours) || 0;
+        totalUsed += parseFloat(e.ptoUsed) || 0;
     });
 
     const startingPTO = parseFloat(document.getElementById("startingPTO").value) || 0;
