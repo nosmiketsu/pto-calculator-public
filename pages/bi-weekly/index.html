@@ -119,7 +119,7 @@ th, td {
 
     <div style="display:flex; gap:10px; margin-bottom:10px;">
         <button onclick="calculatePTO()">Calculate PTO</button>
-        <input type="number" id="startingPTO" value="14" placeholder="Starting PTO">
+        <input type="number" id="startingPTO" placeholder="Starting PTO">
     </div>
 
     <div class="result">
@@ -158,7 +158,13 @@ th, td {
 </div>
 
 <script>
-let entries = [];
+// LOAD FROM STORAGE
+let entries = JSON.parse(localStorage.getItem("ptoEntries")) || [];
+
+// SAVE FUNCTION
+function saveEntries() {
+    localStorage.setItem("ptoEntries", JSON.stringify(entries));
+}
 
 // ADD ENTRY
 function addEntry() {
@@ -173,6 +179,7 @@ function addEntry() {
     }
 
     entries.push({ start, end, hours, ptoUsed });
+    saveEntries();
     renderTable();
 
     document.getElementById('hoursWorked').value = '';
@@ -197,13 +204,14 @@ function renderTable() {
     });
 }
 
-// REMOVE
+// REMOVE ENTRY
 function removeEntry(i) {
     entries.splice(i, 1);
+    saveEntries();
     renderTable();
 }
 
-// CALCULATE
+// CALCULATE PTO
 function calculatePTO() {
     const PTO_PER_YEAR = 80;
     const WORK_HOURS_PER_YEAR = 1716;
@@ -220,8 +228,6 @@ function calculatePTO() {
 
         totalReported += hours;
         totalUsed += used;
-
-        // ✅ FIXED LOGIC
         totalWorked += (hours - used);
     });
 
@@ -238,6 +244,23 @@ function calculatePTO() {
     document.getElementById("remainingPTO").textContent = remainingPTO.toFixed(2);
     document.getElementById("ptoDays").textContent = ptoDays.toFixed(2);
 }
+
+// LOAD STARTING PTO
+const startingInput = document.getElementById("startingPTO");
+const savedPTO = localStorage.getItem("startingPTO");
+
+if (savedPTO !== null) {
+    startingInput.value = savedPTO;
+}
+
+startingInput.addEventListener("input", () => {
+    localStorage.setItem("startingPTO", startingInput.value);
+});
+
+// INITIAL LOAD
+window.onload = function() {
+    renderTable();
+};
 </script>
 
 </body>
